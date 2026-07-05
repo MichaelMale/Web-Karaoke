@@ -52,6 +52,23 @@ No build step, no backend — everything runs in your browser.
    in Settings to enable the Musixmatch lyrics fallback. Without it the app
    still works — LRCLIB covers most popular songs with synced lyrics for free.
 
+## Deploying to GitHub Pages
+
+The repo ships with a workflow (`.github/workflows/deploy-pages.yml`) that
+publishes the app to GitHub Pages on every push to the deploy branches:
+
+1. In the repo, go to **Settings → Pages** and set **Source** to
+   **GitHub Actions** (the workflow also attempts to enable this
+   automatically on its first run).
+2. Push (or re-run the workflow from the **Actions** tab). The site deploys to
+   `https://<user>.github.io/<repo>/`, e.g.
+   `https://michaelmale.github.io/Web-Karaoke/`.
+3. Add that URL as a **Redirect URI** in your Spotify app — use the exact
+   value shown on the app's Settings screen when you open the deployed site.
+
+Because the app is fully static and keeps all credentials in your browser's
+localStorage, no secrets are involved in the deployment.
+
 ## Notes & limitations
 
 - **Spotify lyrics**: Spotify has no public lyrics API. The app attempts the
