@@ -50,15 +50,32 @@ function jsonp(url) {
   });
 }
 
-// Parse LRC-style "[mm:ss.xx] text" lines.
+// Parse LRC lyrics into { timeMs, text } entries.
+// Handles multiple timestamps on one line (e.g. a repeated chorus
+// "[00:12.00][01:05.00]words"), strips inline word-level <mm:ss.xx> tags,
+// skips metadata tags like [ar:] / [ti:], and drops exact duplicate
+// (time,text) pairs so nothing renders twice.
 function parseLrc(text) {
+  const stampRe = /\[(\d+):(\d+(?:\.\d+)?)\]/g;
   const lines = [];
+  const seen = new Set();
   for (const raw of text.split(/\r?\n/)) {
-    const m = raw.match(/^\s*\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);
-    if (!m) continue;
-    const timeMs = Math.round((parseInt(m[1], 10) * 60 + parseFloat(m[2])) * 1000);
-    const line = m[3].trim();
-    if (line) lines.push({ timeMs, text: line });
+    const stamps = [...raw.matchAll(stampRe)];
+    if (!stamps.length) continue;
+    // Text is whatever follows the last leading timestamp, minus any
+    // inline enhanced-LRC word timings.
+    const body = raw
+      .slice(stamps[stamps.length - 1].index + stamps[stamps.length - 1][0].length)
+      .replace(/<\d+:\d+(?:\.\d+)?>/g, '')
+      .trim();
+    if (!body) continue;
+    for (const s of stamps) {
+      const timeMs = Math.round((parseInt(s[1], 10) * 60 + parseFloat(s[2])) * 1000);
+      const key = `${timeMs}|${body}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      lines.push({ timeMs, text: body });
+    }
   }
   return lines;
 }
@@ -101,10 +118,18 @@ async function fromLrclib(track) {
   });
   let res = await fetch(`https://lrclib.net/api/get?${params}`);
   if (res.status === 404) {
-    // Retry without the duration constraint via search.
+    // Retry via search, then pick the closest duration match with synced
+    // lyrics — grabbing the first hit blindly can return timings from a
+    // different edit of the song, which is what makes lyrics feel off-sync.
     const sp = new URLSearchParams({ track_name: track.name, artist_name: track.artists.split(',')[0].trim() });
     const list = await (await fetch(`https://lrclib.net/api/search?${sp}`)).json();
-    const hit = Array.isArray(list) && list.find((x) => x.syncedLyrics) || list?.[0];
+    if (!Array.isArray(list) || !list.length) throw new Error('No lyrics on LRCLIB');
+    const targetSec = track.durationMs / 1000;
+    const dist = (x) => Math.abs((x.duration ?? 1e9) - targetSec);
+    const synced = list.filter((x) => x.syncedLyrics).sort((a, b) => dist(a) - dist(b));
+    // Prefer a synced result within 5s of the track; else best synced; else any.
+    const hit = synced.find((x) => dist(x) <= 5) || synced[0]
+      || list.slice().sort((a, b) => dist(a) - dist(b))[0];
     if (!hit) throw new Error('No lyrics on LRCLIB');
     return lrclibResult(hit, track);
   }

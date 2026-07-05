@@ -186,7 +186,12 @@ export async function stopPlayback() {
 
 // Millisecond position of current playback, or null if unavailable.
 export async function getPositionMs() {
-  if (!player) return null;
-  const state = await player.getCurrentState();
+  const state = await getPlayerState();
   return state ? state.position : null;
+}
+
+// Full playback state ({ position, paused, … }) or null if unavailable.
+export async function getPlayerState() {
+  if (!player) return null;
+  return player.getCurrentState();
 }

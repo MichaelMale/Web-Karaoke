@@ -279,38 +279,58 @@ input[readonly] { opacity: 0.7; }
   justify-content: center;
 }
 
+/* Focused two-line view: the current line plus a dimmed preview of the
+   next one. No scrolling — everything fits on screen at once. */
 .lyrics-scroller {
   width: 100%;
+  max-width: 100%;
   text-align: center;
-  transition: transform 0.45s cubic-bezier(0.25, 0.9, 0.3, 1);
-  padding: 0 1rem;
+  padding: 0 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9em;
 }
 
 .lyric-line {
-  font-size: clamp(1.15rem, 3.4vw, 2.1rem);
+  width: 100%;
   font-weight: 700;
-  line-height: 1.45;
-  padding: 0.42em 0;
-  color: rgba(255,255,255,0.32);
-  transition: color 0.25s ease, transform 0.25s ease;
+  line-height: 1.4;
+  overflow-wrap: break-word;
 }
-.lyric-line.past { color: rgba(255,255,255,0.18); }
-.lyric-line.active {
-  transform: scale(1.06);
+
+/* Current line: big, with the karaoke fill wipe. */
+.lyric-line.current {
+  font-size: clamp(1.5rem, 5vw, 2.9rem);
+  color: rgba(255,255,255,0.5);
+  transition: transform 0.25s ease;
 }
-.lyric-line.active .fill-wrap {
+.lyric-line.current.upcoming { color: rgba(255,255,255,0.38); }
+
+.fill-wrap {
   position: relative;
   display: inline-block;
-  color: rgba(255,255,255,0.55);
 }
-.lyric-line.active .fill {
+/* The base copy provides layout/wrapping; the fill copy overlays it exactly
+   and is revealed left-to-right via clip-path. Both occupy the same box so
+   the text is never doubled. */
+.fill-wrap .base { visibility: visible; }
+.fill-wrap .fill {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  width: 0%;
   color: var(--gold);
-  text-shadow: 0 0 18px rgba(255,209,102,0.35);
+  text-shadow: 0 0 18px rgba(255,209,102,0.4);
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+}
+
+/* Next line: smaller, dimmed preview. */
+.lyric-line.next {
+  font-size: clamp(1rem, 3vw, 1.6rem);
+  font-weight: 600;
+  color: rgba(255,255,255,0.28);
+  min-height: 1.4em;
 }
 
 .countdown {
