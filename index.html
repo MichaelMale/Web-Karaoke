@@ -43,12 +43,12 @@
           <input type="text" id="redirect-uri-display" readonly />
         </label>
         <label class="field">
-          <span>Musixmatch API key <em>(optional — lyrics fallback)</em></span>
+          <span>Musixmatch API key <em>(optional — last-resort lyrics fallback)</em></span>
           <input type="text" id="input-mxm-key" placeholder="Musixmatch developer API key" autocomplete="off" spellcheck="false" />
         </label>
         <p class="hint small">
-          If a track has no lyrics on Spotify, the app checks Musixmatch, then LRCLIB
-          (a free synced-lyrics database, no key needed).
+          If a track has no lyrics on Spotify, the app checks LRCLIB (a free
+          synced-lyrics database, no key needed), then Musixmatch as a last resort.
         </p>
         <div class="btn-row">
           <button class="btn primary" id="btn-save-settings">Save settings</button>
@@ -95,8 +95,8 @@
         <h2 id="loading-title">Fetching lyrics…</h2>
         <ol class="lyric-steps" id="lyric-steps">
           <li data-step="spotify">Checking Spotify lyrics…</li>
-          <li data-step="musixmatch">Checking Musixmatch…</li>
           <li data-step="lrclib">Checking LRCLIB…</li>
+          <li data-step="musixmatch">Checking Musixmatch…</li>
         </ol>
       </div>
     </section>

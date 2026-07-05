@@ -119,7 +119,9 @@ async function api(path) {
 
 export function getProfile() { return api('/me'); }
 
-export async function searchTracks(query, limit = 12) {
+// Spotify's Feb 2026 dev-mode changes cap search limit at 10 for
+// development-mode apps; anything higher returns 400 "Invalid limit".
+export async function searchTracks(query, limit = 10) {
   const data = await api(`/search?type=track&limit=${limit}&q=${encodeURIComponent(query)}`);
   return data.tracks.items.map((t) => ({
     id: t.id,

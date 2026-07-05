@@ -1,7 +1,9 @@
-// Lyrics resolution chain: Spotify → Musixmatch → LRCLIB.
+// Lyrics resolution chain: Spotify → LRCLIB → Musixmatch.
+// LRCLIB comes before Musixmatch because it is free and serves time-synced
+// lyrics without an API key; Musixmatch is a paid API kept as a last resort.
 //
 // Result shape: {
-//   source: 'spotify' | 'musixmatch' | 'lrclib',
+//   source: 'spotify' | 'lrclib' | 'musixmatch',
 //   synced: boolean,            // true when line timings are real, false when estimated
 //   lines: [{ timeMs, text }],  // sorted by timeMs
 // }
@@ -17,7 +19,7 @@ import { getAccessToken } from './spotify.js';
 async function fromSpotify(track) {
   const token = await getAccessToken();
   const res = await fetch(
-    `https://spclient.wg.spotify.com/color-lyrics/v2/track/${track.id}?format=json&market=from_token`,
+    `https://spclient.wg.spotify.com/color-lyrics/v2/track/${track.id}?format=json`,
     { headers: { Authorization: `Bearer ${token}`, 'App-Platform': 'WebPlayer' } },
   );
   if (!res.ok) throw new Error(`Spotify lyrics unavailable (${res.status})`);
@@ -146,8 +148,8 @@ function finalize(source, synced, lines, track) {
 export async function fetchLyrics(track, onStep = () => {}) {
   const providers = [
     ['spotify', fromSpotify],
-    ['musixmatch', fromMusixmatch],
     ['lrclib', fromLrclib],
+    ['musixmatch', fromMusixmatch],
   ];
   const errors = [];
   for (const [name, fn] of providers) {

@@ -11,10 +11,10 @@ No build step, no backend — everything runs in your browser.
 - **Connect Spotify** — secure Authorization Code + PKCE OAuth flow (no client
   secret, no server needed).
 - **Song search** — search the full Spotify catalogue and pick what to sing.
-- **Lyrics chain** — tries **Spotify** lyrics first, then **Musixmatch**
-  (optional API key), then **LRCLIB** (free synced-lyrics database) as a final
-  fallback. Synced (LRC) lyrics drive real line timings; unsynced lyrics get
-  estimated timings.
+- **Lyrics chain** — tries **Spotify** lyrics first, then **LRCLIB** (free
+  synced-lyrics database, no key needed), then **Musixmatch** (paid API,
+  optional key) as a last resort. Synced (LRC) lyrics drive real line
+  timings; unsynced lyrics get estimated timings.
 - **KaraFun-style karaoke screen** — full-width lyric stage with the active
   line highlighted and progressively filled, upcoming lines below, countdown
   dots before entries, song progress bar.
@@ -49,8 +49,9 @@ No build step, no backend — everything runs in your browser.
    hit **Connect Spotify**.
 
 4. *(Optional)* add a [Musixmatch](https://developer.musixmatch.com/) API key
-   in Settings to enable the Musixmatch lyrics fallback. Without it the app
-   still works — LRCLIB covers most popular songs with synced lyrics for free.
+   in Settings to enable the Musixmatch last-resort fallback. Without it the
+   app works fine — LRCLIB covers most popular songs with synced lyrics for
+   free and is tried before Musixmatch.
 
 ## Deploying to GitHub Pages
 
