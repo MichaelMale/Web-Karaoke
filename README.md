@@ -69,6 +69,27 @@ publishes the app to GitHub Pages on every push to the deploy branches:
 Because the app is fully static and keeps all credentials in your browser's
 localStorage, no secrets are involved in the deployment.
 
+> **Note:** GitHub Pages is not available for **private** repositories on the
+> Free plan — make the repo public (or upgrade to Pro) and re-run the
+> workflow. Until then, use the Docker container below.
+
+## Running in Docker
+
+The repo also ships with a container setup (nginx serving the static files):
+
+```sh
+docker compose up -d          # → http://localhost:8080
+# or, without compose:
+docker build -t web-karaoke .
+docker run -d -p 8080:80 web-karaoke
+```
+
+Then register `http://localhost:8080/` (or wherever you host the container —
+Spotify requires HTTPS for non-localhost hosts) as a Redirect URI in your
+Spotify app. Note that microphone access via `getUserMedia` also requires a
+secure context: `localhost` is fine, but a remote deployment needs HTTPS in
+front of the container.
+
 ## Notes & limitations
 
 - **Spotify lyrics**: Spotify has no public lyrics API. The app attempts the
