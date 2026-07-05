@@ -114,7 +114,9 @@ export class KaraokeSession {
       const lineStart = this.lines[idx].timeMs;
       const lineEnd = this._lineEndMs(idx);
       const frac = Math.max(0, Math.min(1, (tMs - lineStart) / Math.max(lineEnd - lineStart, 1)));
-      this.fillEl.style.clipPath = `inset(0 ${(100 - frac * 100).toFixed(1)}% 0 0)`;
+      const clip = `inset(0 ${(100 - frac * 100).toFixed(1)}% 0 0)`;
+      this.fillEl.style.clipPath = clip;
+      this.fillEl.style.webkitClipPath = clip; // Safari < 14
     }
 
     this.els.progress.style.width = `${((tMs / this.durationMs) * 100).toFixed(2)}%`;
@@ -144,6 +146,7 @@ export class KaraokeSession {
     this.baseEl.textContent = line?.text || '';
     this.fillEl.textContent = line?.text || '';
     this.fillEl.style.clipPath = 'inset(0 100% 0 0)';
+    this.fillEl.style.webkitClipPath = 'inset(0 100% 0 0)';
     this.currentEl.classList.toggle('upcoming', idx === -1);
     this.nextEl.textContent = this.lines[showIdx + 1]?.text || '';
   }

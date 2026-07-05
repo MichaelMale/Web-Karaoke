@@ -143,9 +143,33 @@ let sdkReady = new Promise((resolve) => {
   else window.onSpotifyWebPlaybackSDKReady = resolve;
 });
 
+// All iOS browsers (Safari, and Chrome/Edge/Firefox for iOS, which are all
+// WebKit) cannot run the Spotify Web Playback SDK — it needs EME/DRM playback
+// that iOS WebKit does not grant to third-party web players. Detecting this up
+// front lets us skip a pointless 12s connection timeout and go straight to
+// a-cappella mode with an honest explanation.
+export function isIOS() {
+  const ua = navigator.userAgent;
+  return /iPad|iPhone|iPod/.test(ua) ||
+    // iPadOS 13+ masquerades as desktop Safari:
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+// True when in-browser Spotify playback has any chance of working here.
+export function isPlaybackSupported() {
+  if (isIOS()) return false;
+  // The SDK relies on Encrypted Media Extensions.
+  return typeof navigator.requestMediaKeySystemAccess === 'function';
+}
+
 // Returns { player, deviceId } or throws if playback isn't possible (e.g. no Premium).
 export async function ensurePlayer() {
   if (player && deviceId) return { player, deviceId };
+  if (!isPlaybackSupported()) {
+    throw new Error(isIOS()
+      ? 'In-browser Spotify playback is not available on iOS (Safari/Chrome)'
+      : 'This browser does not support in-browser Spotify playback');
+  }
   await sdkReady;
 
   player = new Spotify.Player({

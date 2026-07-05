@@ -26,6 +26,11 @@ export class PerformanceRater {
     });
 
     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Safari/iOS create the context in a "suspended" state; it must be
+    // resumed or no audio samples are ever delivered.
+    if (this.audioCtx.state === 'suspended') {
+      try { await this.audioCtx.resume(); } catch { /* best effort */ }
+    }
     const source = this.audioCtx.createMediaStreamSource(this.stream);
     this.analyser = this.audioCtx.createAnalyser();
     this.analyser.fftSize = 2048;

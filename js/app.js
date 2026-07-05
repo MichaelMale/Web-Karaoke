@@ -75,6 +75,10 @@ function initSettings() {
 
   if (window.location.protocol === 'file:') {
     $('connect-hint').textContent = 'Heads up: serve this app over http(s) — Spotify auth does not work from file:// URLs.';
+  } else if (!spotify.isPlaybackSupported()) {
+    $('connect-hint').textContent = spotify.isIOS()
+      ? 'Note: iPhone/iPad browsers can’t play Spotify audio in the page. You’ll still get lyrics + scoring in a-cappella mode — for the backing track, use Chrome/Edge/Firefox on a computer with Spotify Premium.'
+      : 'Note: this browser can’t play Spotify audio in the page, so you’ll get a-cappella mode (lyrics + scoring, no backing track).';
   }
 }
 
