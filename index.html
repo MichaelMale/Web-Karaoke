@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Karaoke — Sing with Spotify</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎤</text></svg>" />
+</head>
+<body>
+
+  <header class="app-header">
+    <h1 class="logo" id="logo-home" role="button" tabindex="0">🎤 Web<span>Karaoke</span></h1>
+    <nav class="app-nav">
+      <button class="nav-btn" data-nav="search" id="nav-search" hidden>Sing</button>
+      <button class="nav-btn" data-nav="scoreboard" id="nav-scoreboard">Scoreboard</button>
+      <button class="nav-btn" data-nav="settings" id="nav-settings">Settings</button>
+      <div class="user-chip" id="user-chip" hidden>
+        <img id="user-avatar" alt="" />
+        <span id="user-name"></span>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+
+    <!-- ============ SETTINGS / FIRST-RUN SCREEN ============ -->
+    <section class="screen" id="screen-settings" hidden>
+      <div class="card narrow">
+        <h2>Settings</h2>
+        <p class="hint">
+          This app runs entirely in your browser. To connect Spotify you need a (free)
+          Spotify Developer application — create one at
+          <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a>,
+          add this page's URL as a <strong>Redirect URI</strong>, and paste the Client&nbsp;ID below.
+        </p>
+        <label class="field">
+          <span>Spotify Client ID <em>(required)</em></span>
+          <input type="text" id="input-client-id" placeholder="e.g. 5f573c9620494bae87890c0f08a60293" autocomplete="off" spellcheck="false" />
+        </label>
+        <label class="field">
+          <span>Redirect URI to register in your Spotify app</span>
+          <input type="text" id="redirect-uri-display" readonly />
+        </label>
+        <label class="field">
+          <span>Musixmatch API key <em>(optional — lyrics fallback)</em></span>
+          <input type="text" id="input-mxm-key" placeholder="Musixmatch developer API key" autocomplete="off" spellcheck="false" />
+        </label>
+        <p class="hint small">
+          If a track has no lyrics on Spotify, the app checks Musixmatch, then LRCLIB
+          (a free synced-lyrics database, no key needed).
+        </p>
+        <div class="btn-row">
+          <button class="btn primary" id="btn-save-settings">Save settings</button>
+          <button class="btn danger ghost" id="btn-disconnect">Disconnect Spotify</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CONNECT SCREEN ============ -->
+    <section class="screen" id="screen-connect" hidden>
+      <div class="hero">
+        <div class="hero-mic">🎤</div>
+        <h2>Ready to sing?</h2>
+        <p>Connect your Spotify account to search songs, play them, and get
+           time-synced karaoke lyrics with live scoring.</p>
+        <button class="btn spotify big" id="btn-connect">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.34a.75.75 0 0 1-1.03.25c-2.82-1.73-6.37-2.12-10.56-1.16a.75.75 0 1 1-.33-1.46c4.56-1.04 8.48-.59 11.64 1.34.36.22.47.68.28 1.03zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.23-1.98-8.16-2.56-11.98-1.4a.94.94 0 1 1-.55-1.79c4.37-1.33 9.8-.68 13.51 1.6.44.27.58.85.31 1.28zm.13-3.4C15.24 8.37 8.94 8.15 5.25 9.27a1.13 1.13 0 1 1-.65-2.15c4.24-1.29 11.28-1.04 15.72 1.6a1.13 1.13 0 0 1-1.16 1.95z"/></svg>
+          Connect Spotify
+        </button>
+        <p class="hint small" id="connect-hint"></p>
+      </div>
+    </section>
+
+    <!-- ============ SEARCH SCREEN ============ -->
+    <section class="screen" id="screen-search" hidden>
+      <div class="card">
+        <h2>What do you want to sing?</h2>
+        <div class="search-row">
+          <input type="search" id="input-search" placeholder="Search a song or artist…" autocomplete="off" />
+          <button class="btn primary" id="btn-search">Search</button>
+        </div>
+        <label class="field inline">
+          <span>Singer name</span>
+          <input type="text" id="input-singer" placeholder="Who's singing?" maxlength="24" />
+        </label>
+        <ul class="track-list" id="track-list" aria-live="polite"></ul>
+      </div>
+    </section>
+
+    <!-- ============ LOADING / LYRICS-FETCH SCREEN ============ -->
+    <section class="screen" id="screen-loading" hidden>
+      <div class="hero">
+        <div class="spinner" aria-hidden="true"></div>
+        <h2 id="loading-title">Fetching lyrics…</h2>
+        <ol class="lyric-steps" id="lyric-steps">
+          <li data-step="spotify">Checking Spotify lyrics…</li>
+          <li data-step="musixmatch">Checking Musixmatch…</li>
+          <li data-step="lrclib">Checking LRCLIB…</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ KARAOKE SCREEN ============ -->
+    <section class="screen karaoke" id="screen-karaoke" hidden>
+      <div class="karaoke-top">
+        <div class="now-playing">
+          <img id="k-art" alt="" />
+          <div>
+            <div class="k-title" id="k-title"></div>
+            <div class="k-artist" id="k-artist"></div>
+          </div>
+        </div>
+        <div class="k-live">
+          <div class="mic-meter" title="Microphone level"><div id="mic-level"></div></div>
+          <div class="k-score" id="k-live-score">0</div>
+          <span class="rec-dot" id="rec-dot" hidden title="Recording">●</span>
+        </div>
+        <button class="btn ghost" id="btn-quit">✕ End</button>
+      </div>
+
+      <div class="lyrics-stage" id="lyrics-stage">
+        <div class="countdown" id="countdown" hidden></div>
+        <div class="lyrics-scroller" id="lyrics-scroller"></div>
+      </div>
+
+      <div class="karaoke-bottom">
+        <div class="progress-bar"><div id="song-progress"></div></div>
+        <div class="k-times"><span id="time-now">0:00</span><span id="time-total">0:00</span></div>
+        <div class="sync-note" id="sync-note" hidden>⏱ Timings estimated — lyrics were not time-synced</div>
+      </div>
+    </section>
+
+    <!-- ============ RESULTS SCREEN ============ -->
+    <section class="screen" id="screen-results" hidden>
+      <div class="card narrow center">
+        <h2 id="result-heading">Performance complete!</h2>
+        <div class="result-grade" id="result-grade">–</div>
+        <div class="result-score"><span id="result-score">0</span> pts</div>
+        <div class="result-breakdown">
+          <div class="rb-row"><span>Timing &amp; presence</span><div class="rb-bar"><div id="rb-presence"></div></div><span id="rb-presence-val"></span></div>
+          <div class="rb-row"><span>Pitch &amp; melody</span><div class="rb-bar"><div id="rb-pitch"></div></div><span id="rb-pitch-val"></span></div>
+          <div class="rb-row"><span>Consistency</span><div class="rb-bar"><div id="rb-consistency"></div></div><span id="rb-consistency-val"></span></div>
+        </div>
+        <div class="playback" id="playback-wrap" hidden>
+          <p class="hint small">Listen back to your performance:</p>
+          <audio controls id="recording-audio"></audio>
+        </div>
+        <div class="btn-row center">
+          <button class="btn primary" id="btn-save-score">Save to scoreboard</button>
+          <button class="btn ghost" id="btn-sing-again">Sing another</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SCOREBOARD SCREEN ============ -->
+    <section class="screen" id="screen-scoreboard" hidden>
+      <div class="card">
+        <div class="card-head">
+          <h2>🏆 Scoreboard</h2>
+          <button class="btn danger ghost small" id="btn-clear-scores">Clear all</button>
+        </div>
+        <table class="scoreboard" id="scoreboard-table">
+          <thead>
+            <tr><th>#</th><th>Singer</th><th>Song</th><th>Grade</th><th class="num">Score</th><th>When</th></tr>
+          </thead>
+          <tbody id="scoreboard-body"></tbody>
+        </table>
+        <p class="hint center" id="scoreboard-empty" hidden>No performances yet — go sing something!</p>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
