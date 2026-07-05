@@ -55,23 +55,25 @@ No build step, no backend — everything runs in your browser.
 ## Deploying to GitHub Pages
 
 The repo ships with a workflow (`.github/workflows/deploy-pages.yml`) that
-publishes the app to GitHub Pages on every push to the deploy branches:
+publishes the site on every push to `main` by mirroring the tree to a
+`gh-pages` branch, which GitHub serves via Pages automatically:
 
-1. In the repo, go to **Settings → Pages** and set **Source** to
-   **GitHub Actions** (the workflow also attempts to enable this
-   automatically on its first run).
-2. Push (or re-run the workflow from the **Actions** tab). The site deploys to
-   `https://<user>.github.io/<repo>/`, e.g.
+1. Push to `main` (or run the workflow manually from the **Actions** tab).
+2. The site deploys to `https://<user>.github.io/<repo>/`, e.g.
    `https://michaelmale.github.io/Web-Karaoke/`.
 3. Add that URL as a **Redirect URI** in your Spotify app — use the exact
    value shown on the app's Settings screen when you open the deployed site.
+
+If the site doesn't appear a minute or two after the first deploy, check
+**Settings → Pages** and set the source to **Deploy from a branch →
+`gh-pages`** once.
 
 Because the app is fully static and keeps all credentials in your browser's
 localStorage, no secrets are involved in the deployment.
 
 > **Note:** GitHub Pages is not available for **private** repositories on the
-> Free plan — make the repo public (or upgrade to Pro) and re-run the
-> workflow. Until then, use the Docker container below.
+> Free plan — the repo must be public (or the account on Pro). Otherwise,
+> use the Docker container below.
 
 ## Running in Docker
 
